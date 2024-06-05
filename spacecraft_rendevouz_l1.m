@@ -9,17 +9,17 @@ mu = 3.986e14
 r_e = 6.371e6
 
 %altitude of the target orbit (m)
-altitude = 422137
+%altitude = 422137
 
 %a - radius of the target body's circular orbit (m)
-a = r_e + altitude
+%a = r_e + altitude
+
+%sma from ppt
+a = 6.85635e6
 
 %constant mean motion of target n = sqrt(mu/a^3)
 %units: rad/s
 n = sqrt(mu/a^3)
-
-%this was working before..
-%n = 0.0010831 
 
 %number of states
 nx = 6
@@ -28,9 +28,12 @@ nx = 6
 nu = 3
 
 %number of knot points
-N = 2500
+N = 1000
 
 %timestep (seconds)
+%need to wait at least 60 seconds between 
+%successive thruster actuations. Encoded with 
+%this timestep
 dt = 1
 
 %time history
@@ -42,7 +45,17 @@ x0_target = zeros(1, nx)'
 %Chaser Spacecraft Initial State
 %position - m
 %velocity - m/s
-x0_chaser = [15.0, 20.0, 15.0, 10.0, 10.0, 0.0]'
+
+%arbitrary state
+%x0_chaser = [15.0, 20.0, 15.0, 10.0, 10.0, 0.0]'
+
+%using the true data from the ppt
+x0_chaser = [-954.2737796781585,
+             -14823.695162802862,
+             113670.10914644419,
+             -126.80444415631715,
+             0.13665334180757327,
+             -1.0478763970741056]
 
 %Clohessy Wiltshire Equations in statespace form
 
@@ -53,8 +66,8 @@ A(6, 3) = -n^2
 A(4, 5) = 2*n
 A(5, 4) = -2*n
 
-%mass of the satellite (kg)
-m = 1
+%mass of the satellite (kg) from data
+m = 5.22
 
 B = 1/m*[zeros(3,3); eye(3)]
 
@@ -112,8 +125,8 @@ cvx_begin
     
        %Thrust Limit Constraint
        for k=1:(N-1)
-           
-           norm(U(:,k)) <= 0.06
+           %maximum 4.6 mm/s for 1 second burn
+           norm(U(:,k), 1) <= 4.6e-3
 
        end
     
