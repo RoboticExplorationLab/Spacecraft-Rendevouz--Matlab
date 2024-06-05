@@ -1,3 +1,4 @@
+%updated code 
 clc;
 clear; 
 cvx_clear;
@@ -28,7 +29,8 @@ nx = 6
 nu = 3
 
 %number of knot points
-N = 1000
+%this is to plan 2 minitues worth of controls
+N = 121
 
 %timestep (seconds)
 %need to wait at least 60 seconds between 
@@ -113,7 +115,7 @@ cvx_begin
    variable U(nu, N-1)
 
    %minimize the L1 norm to get bang bang controls
-   minimize(norm(U(:),1))
+   minimize(norm(U(:),1) + norm(X(:), 2))
 
    subject to
 
@@ -121,9 +123,12 @@ cvx_begin
        X(:,1) == x_initial
     
        %Goal constraint
-       X(:, N) == x_goal
+       %X(:, N) == x_goal
     
        %Thrust Limit Constraint
+       %currently infeasible. removing this 
+       %it solves when removing this constraint and 
+       %we get impulsive controls
        for k=1:(N-1)
            %maximum 4.6 mm/s for 1 second burn
            norm(U(:,k), 1) <= 4.6e-3
@@ -136,7 +141,21 @@ cvx_begin
            X(:,k+1) == Ad*X(:,k) + Bd*U(:,k)
        end
 
+       %successive controls must be 60 seconds apart
+       for k = 2:60
+            U(:, k) == zeros(3,1)
+       end
+
+       for k = 62:N-1
+            U(:, k) == zeros(3,1)
+       end
+       
 cvx_end
+
+
+
+
+
 
 figure('Name', 'My Plot', 'NumberTitle', 'off', 'Visible', 'on');
 
@@ -163,18 +182,18 @@ subplot(3, 1, 1);
 plot(thist(1, 1:N-1), U(1,:), '-b', 'LineWidth', 1.5); 
 title('X-Control');
 xlabel('Time (s)');
-ylabel('Thrust (N)');
+ylabel('Delta v (m/s)');
 
 % Second subplot
 subplot(3, 1, 2);
 plot(thist(1, 1:N-1), U(2,:), '-r', 'LineWidth', 1.5); 
 title('Y-Control');
 xlabel('Time (s)');
-ylabel('Thrust (N)');
+ylabel('Delta v (m/s)');
 
 % Third subplot
 subplot(3, 1, 3); 
 plot(thist(1, 1:N-1), U(3,:), '-g', 'LineWidth', 1.5); 
 title('Z-Control');
 xlabel('Time (s)');
-ylabel('Thrust (N)');
+ylabel('Delta v (m/s)');
