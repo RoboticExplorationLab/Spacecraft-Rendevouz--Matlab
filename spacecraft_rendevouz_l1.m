@@ -52,12 +52,12 @@ x0_target = zeros(1, nx)'
 %x0_chaser = [15.0, 20.0, 15.0, 10.0, 10.0, 0.0]'
 
 %using the true data from the ppt
-x0_chaser = [-0.2906951578333974,
-             -258.73424997857484,
-             1984.0093925290266,
-             -2.2132577166418366,
-             4.1627960172263556e-5,
-             -0.00031920885703584645]
+x0_chaser = [-0.2913181949406862,
+             -259.0113696278884,
+             1986.134383662354,
+             -2.2156282462577286,
+             4.171718001089175e-5,
+             -0.0003198930062353611]
 
 %Clohessy Wiltshire Equations in statespace form
 
@@ -131,7 +131,7 @@ cvx_begin
        %we get impulsive controls
        for k=1:(N-1)
            %maximum 4.6 mm/s for 1 second burn
-           norm(U(:,k), 1) <= 4.6e-3
+           norm(U(:,k)/m, 2) <= 4.6e-3
 
        end
     
@@ -151,11 +151,6 @@ cvx_begin
        end
        
 cvx_end
-
-
-
-
-
 
 figure('Name', 'My Plot', 'NumberTitle', 'off', 'Visible', 'on');
 
